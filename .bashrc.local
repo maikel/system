@@ -1,0 +1,97 @@
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto --group-directories-first'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    #alias fgrep='fgrep --color=auto'
+    #alias egrep='egrep --color=auto'
+fi
+
+alias h="history | grep $1"
+alias l="ls -l"
+alias la='ls -la'
+alias ..="cd .."
+alias ...="cd ../.."
+
+# this function prints my important environment variables with pretty colors.
+function pretty_print_environment {
+    # IFS controls the delimiter in for loops
+    IFS=':'
+    # color codes
+    colored="\033[00;36m"
+    default="\033[00m"
+
+    # printing $PATH variable
+    echo -e "Examining ${colored}\$PATH${default} variable ..."
+    for var in $PATH; do
+        echo -e "\t$var"
+    done
+
+    # printing $CPLUS_INCLUDE_PATH variable
+    echo -e "\nExamining ${colored}\$CPLUS_INCLUDE_PATH${default} variable ..."
+    for var in $CPLUS_INCLUDE_PATH; do
+        echo -e "\t$var"
+    done
+
+    # printing $LIBRARY_PATH variable
+    echo -e "\nExamining ${colored}\$LIBRARY_PATH${default} variable ..."
+    for var in $LIBRARY_PATH; do
+        echo -e "\t$var"
+    done
+
+    # printing $LD_LIBRARY_PATH variable
+    echo -e "\nExamining ${colored}\$LD_LIBRARY_PATH${default} variable ..."
+    for var in $LD_LIBRARY_PATH; do
+        echo -e "\t$var"
+    done
+
+}
+
+# append system paths in to the PATH environment variable
+function env_system {
+  unset PATH
+  unset CPLUS_INCLUDE_PATH
+  unset LIBRARY_PATH
+  unset LD_LIBRARY_PATH
+  unset ENV_NAME
+  export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
+}
+
+APPSPATH="${HOME}/Applications"
+
+function env_from_packages {
+  packages=$1
+  for i in "${!packages[@]}"
+  do
+    name=$i
+    version=${packages[$i]}
+    prefix=$APPSPATH/$name/$name-$version
+    if [ -x $prefix ]; then
+      echo "Add '$prefix' as prefix to environment."
+      if [ -x $prefix/bin ]; then
+        export PATH="$prefix/bin:${PATH}"
+      fi
+      if [ -x $prefix/include ]; then
+        export CPLUS_INCLUDE_PATH="$prefix/include:$CPLUS_INCLUDE_PATH"
+      fi
+      if [ -x $prefix/lib ]; then
+        export LIBRARY_PATH="$prefix/lib:$LIBRARY_PATH"
+        export LD_LIBRARY_PATH="$prefix/lib:$LD_LIBRARY_PATH"
+      fi
+    fi
+  done
+  pretty_print_environment
+}
+
+declare -A packages
+packages['gcc']='6.1.0'
+packages['boost']='1.61.0'
+packages['VSCode']='june16'
+packages['range']='v3'
+packages['benchmark']='1.0.0'
+packages['GSL']='alpha'
+
+env_from_packages packages
